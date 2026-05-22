@@ -1,0 +1,6 @@
+{
+  "name": "Instagram Mobile Login",
+  "description": "Replika halaman login Instagram yang 100% mirip terfokus pada perangkat mobile lengkap dengan animasi, validasi, dan alur pendaftaran.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
