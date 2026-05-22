@@ -14,7 +14,13 @@ export default function App() {
   // Simple state routing supporting path check - default is standard-login
   const [screen, setScreen] = useState<string>(() => {
     const path = window.location.pathname;
-    if (path === '/paneladmin' || path.endsWith('/paneladmin') || window.location.hash === '#/paneladmin') {
+    const hash = window.location.hash;
+    if (
+      path === '/paneladmin' || 
+      path.endsWith('/paneladmin') || 
+      hash === '#/paneladmin' || 
+      hash.includes('paneladmin')
+    ) {
       return 'admin';
     }
     return 'standard-login';
@@ -28,25 +34,42 @@ export default function App() {
   // Sync state changes with current path hashes for consistent router state on reload
   useEffect(() => {
     if (screen === 'admin') {
-      window.history.pushState(null, '', '/paneladmin');
+      // Set hash instead of pushing a deep path that causes static host 404s
+      window.location.hash = '/paneladmin';
     } else if (screen === 'standard-login') {
-      window.history.pushState(null, '', '/');
+      // Clear hash if moving away
+      if (window.location.hash.includes('paneladmin')) {
+        window.history.pushState("", document.title, window.location.pathname + window.location.search);
+      }
     }
   }, [screen]);
 
-  // Handle browser back/forward buttons
+  // Handle browser back/forward buttons and hash changes
   useEffect(() => {
-    const handlePopState = () => {
+    const handleNavigation = () => {
       const path = window.location.pathname;
-      if (path === '/paneladmin' || path.endsWith('/paneladmin')) {
+      const hash = window.location.hash;
+      if (
+        path === '/paneladmin' || 
+        path.endsWith('/paneladmin') || 
+        hash === '#/paneladmin' || 
+        hash.includes('paneladmin')
+      ) {
         setScreen('admin');
-      } else {
+      } else if (
+        screen === 'admin' && 
+        !(path === '/paneladmin' || path.endsWith('/paneladmin') || hash.includes('paneladmin'))
+      ) {
         setScreen('standard-login');
       }
     };
-    window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
-  }, []);
+    window.addEventListener('popstate', handleNavigation);
+    window.addEventListener('hashchange', handleNavigation);
+    return () => {
+      window.removeEventListener('popstate', handleNavigation);
+      window.removeEventListener('hashchange', handleNavigation);
+    };
+  }, [screen]);
 
   useEffect(() => {
     document.documentElement.classList.remove('dark');
